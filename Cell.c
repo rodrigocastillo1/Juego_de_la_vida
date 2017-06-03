@@ -49,6 +49,54 @@ void showCells(DLList *cell_list, int n, int m){
 	}
 }
 
+void generateAdjacencyMatrix(DLList *cell_list, DLList *adjMat){			//Función para generar una matríz de adyacencia
+	Cell_t * c1, *c2;
+	DLList * a;														//Se declaran las variables para las células
+	for(int i=0; i<cell_list->size; i++){									//Por cada célula en la lista de células...
+		c1 = lookAt(cell_list, i);											//Guardamos en c1 a la célula iterada
+		append(adjMat, (a = newDLList()));
+		for(int j=0; j<cell_list->size; j++){								//De nuevo iteramos sobre la misma lista
+			a = lookAt(adjMat, j);
+			if(i != j){														//Y si los índices son distintos (no estamos iterando sobre la misma célula)
+				c2 = lookAt(cell_list, j);									//Guardamos en c2 la otra célula
+				if((c1->pos_i == c2->pos_i || c1->pos_i == (c2->pos_i)-1 || c1->pos_i == (c2->pos_i)+1) &&
+				   (c1->pos_j == c2->pos_j || c1->pos_j == (c2->pos_j)-1 || c1->pos_j == (c2->pos_j)+1)){		//Si cumple unas condiciones curiosas, entonces las células son adyacentes, son vecinas
+					append(a, (int *)1);																			//Indicamos en la matríz que sí son adyacentes
+				}
+			}
+			else															//Si no cumplen las condiciones
+				append(a, (int *)0);											//No son adyacentes
+		}
+	}
+}
+
+void newTurn(DLList *cell_list, DLList *adjMat, int rows, int cols){		//Función para generar un nuevo turno
+	int alive = 0;														//Inicializamos un contador de las células vecinas vivas
+	DLList *cell_list2 = newDLList(), *a;
+	Cell_t * c;															//Declaramos una variable para una célula
+	for(int i=0; i<rows; i++){											//Iteramos sobre las filas de la matríz de adyacencia
+		a = lookAt(adjMat, i);
+		for(int j=0; j<cols; j++)										//Iteramos sobre las columnas de la matríz de adyacencia
+			if( (int *)lookAt(a, j) == 1 )										//Si la célula actual es adyacente a la célula en i,j
+				if(lookAt(cell_list, j)->status == 1)					//Verificamos si dicha célula adyacente está viva
+					alive++;											//Si lo está, incrementamos el contador
+		c = lookAt(cell_list, i);										//Traemos la célula que estamos iterando
+		changeCellStatus(c, checkRules(c, alive));						//Cambiamos su estado en base a las reglas
+		append(cell_list2, c);
+	}
+	cell_list = cell_list2;
+}
+
+int checkRules(Cell_t *c, int alive){						//Reglas para cambiar el estado de una célula
+	if(c->status == 1 && alive < 2)							//Si está viva y tiene 0 o 1 célula vecina viva...
+		return 0;											//Muere :(
+	if(c->status == 1 && alive > 3)							//Si está viva y tiene 4 o más vecinas vivas...
+		return 0;											//Muere :(
+	if(c->status == 0 && (alive == 2 || alive == 3))		//Si está muerta y tiene 2 o 3 vecinas vivas...
+		return 1;											//Revive :O
+	return c->status;										//En cualquier otro caso, no se inmuta
+}
+
 int getRandomNumber(int max_value, int last){
 	int new_num;											//Se declara un arreglo de números con tamaño fijo, y una variable para alojar números aleatorios
 	do{
