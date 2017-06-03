@@ -15,11 +15,16 @@ int main(int argc, char const *argv[])
 		return 0;
 	}
 	int rows = atoi(argv[1]), cols = atoi(argv[2]), seeds = atoi(argv[3]);		//Ponemos nombres a los parámetros que se pasan
+	printf("Comienza todo\n");
 	DLList *cell_list = newDLList();											//Creamos una lista de células vacía
 	DLList *adjMat = newDLList();
+	printf("Aqui 1\n");
 	createCells(cell_list, rows, cols, seeds);									//La llenamos
+	printf("Aqui 2\n");
 	for(int i=0; i<max_it; i++){												//Iteraremos el número de veces que se indiquen:
+		printf("Iteracion %d\n", i);
 		generateAdjacencyMatrix(cell_list, adjMat);								//Generamos la matríz de adyacencia de la lista anterior
+		printf("Bandera 1\n");
 		newTurn(cell_list, adjMat, rows, cols);									
 		showCells(cell_list, rows, cols);
 	}
