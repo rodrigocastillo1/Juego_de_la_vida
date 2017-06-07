@@ -22,9 +22,9 @@ Algoritmo para la solución del problema:
 
 
 Para compilar el programa junto con las librerías introducir el comando: gcc life_game.c DoubleLinkedList.c Cell.c -o life_game
+Si se quiere compilar el programa en paralelo, se debe de poner la bandera -fopenmp después de gcc
 
-Para correr el programa es necesario pasar como parámetros: número de filas, número de columnas y número de células vivas inicialmente
+Para correr el programa es necesario pasar como parámetros: número de filas, número de columnas, número de células vivas inicialmente, numero de iteraciones y últimamente se debe de poner un 0 si se quiere ver el resultado final o un -1 si se quieren ver las iteraciones.
 
-Ejemplo: ./life_game 10 12 15
-Lo que nos daría una matriz de 10x12 y aproximadamente 15 células vivas inicialmente
-
+Ejemplo: ./life_game 10 12 15 4 -1
+Lo que nos daría una matriz de 10x12 y aproximadamente 15 células vivas inicialmente, 4 iteraciones y mostradas cada una de ellas

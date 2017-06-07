@@ -16,6 +16,7 @@ Cell_t * newCell(int i, int j, int s){
 
 void createCells(DLList *cell_list, int rows, int cols, int seeds_num){			//Función para la creación de células iniciales
 	int random_number = -1;
+	Cell_t * cell;
 	for(int i=0; i<rows; i++){													//Iteramos sobre los renglones:
 		for(int j=0; j<cols; j++){												//Iteramos sobre las columnas:
 			Cell_t *c = newCell(i, j, 0);										//Creamos una nueva célula, muerta...
@@ -26,12 +27,14 @@ void createCells(DLList *cell_list, int rows, int cols, int seeds_num){			//Func
 	for(int i=0; i<seeds_num; i++){												//Por cada elemento en la lista de numero aleatorios
 		random_number = getRandomNumber(rows*cols, random_number);
 		//printf("Random [%d]: %d\n", i, random_number);
-		changeCellStatus(lookAt(cell_list, random_number), 1);					//Cambiamos el estado a vivas, a las células que se encuentren en la posición en la lista correspondiente al número aleatorio iterado
+		cell = lookAt(cell_list, random_number);
+		cell->status = 1;														//Cambiamos el estado a vivas, a las células que se encuentren en la posición en la lista correspondiente al número aleatorio iterado
 	}
 }
 
-void changeCellStatus(Cell_t *cell, int new_status){		//Función para cambiar el estado de una célula
-	cell->status = new_status;								//De la célula que se pasa como parámetro, cambiamos su estado por el nuevo
+Cell_t * changeCellStatus(Cell_t *cell, int new_status){					//Función para cambiar el estado de una célula
+	Cell_t * new_cell = newCell(cell->pos_i, cell->pos_j, new_status);		//De la célula que se pasa como parámetro, cambiamos su estado por el nuevo
+	return new_cell;
 }
 
 void showCells(DLList *cell_list, int n, int m){
@@ -49,50 +52,59 @@ void showCells(DLList *cell_list, int n, int m){
 	}
 }
 
-void generateAdjacencyMatrix(DLList *cell_list, DLList *adjMat){			//Función para generar una matríz de adyacencia
+void generateAdjacencyMatrix(DLList *cell_list, int order, int (*adjMat)[order], int rows, int cols){			//Función para generar una matríz de adyacencia
 	Cell_t * c1, *c2;
-	DLList * a;															//Se declaran las variables para las células
+	DLList * a;																//Se declaran las variables para las células
 	int y = 1, n = 0;
 	for(int i=0; i<cell_list->size; i++){									//Por cada célula en la lista de células...
 		c1 = lookAt(cell_list, i);											//Guardamos en c1 a la célula iterada
-		append(adjMat, (a = newDLList()));
-		printf("Funcion 1\n");
 		for(int j=0; j<cell_list->size; j++){								//De nuevo iteramos sobre la misma lista
-			a = lookAt(adjMat, j);
 			if(i != j){														//Y si los índices son distintos (no estamos iterando sobre la misma célula)
 				c2 = lookAt(cell_list, j);									//Guardamos en c2 la otra célula
-				printf("Condicion\n");
 				if((c1->pos_i == c2->pos_i || c1->pos_i == (c2->pos_i)-1 || c1->pos_i == (c2->pos_i)+1) &&
-				   (c1->pos_j == c2->pos_j || c1->pos_j == (c2->pos_j)-1 || c1->pos_j == (c2->pos_j)+1)){		//Si cumple unas condiciones curiosas, entonces las células son adyacentes, son vecinas
-					printf("Todo chidorris\n");
-					append(a, &y);																	//Indicamos en la matríz que sí son adyacentes
-					printf("Y ahora?\n");
+				   (c1->pos_j == c2->pos_j || c1->pos_j == (c2->pos_j)-1 || c1->pos_j == (c2->pos_j)+1)){		//Si cumple unas condiciones curiosas, entonces las células son adyacentes, son vecinas																				//Indicamos en la matríz que sí son adyacentes
+					adjMat[i][j] = 1;
 				}
+				else															//Si no cumplen las condiciones
+					adjMat[i][j] = 0;
 			}
-			else															//Si no cumplen las condiciones
-				append(a, &n);										//No son adyacentes
+			else																//Si no cumplen las condiciones
+				adjMat[i][j] = 0;												//No son adyacentes
 		}
 	}
 }
 
-void newTurn(DLList *cell_list, DLList *adjMat, int rows, int cols){	//Función para generar un nuevo turno
+void printAdjacencyMatrix(int order, int (*adjMat)[order], int rows, int cols){
+	printf("Matriz de adyacencia\n\n");
+	for(int i=0; i<rows*cols; i++){
+		for(int j=0; j<rows*cols; j++){
+			printf("%d ", adjMat[i][j]);
+		}
+		printf("\n");
+	}
+	printf("\n--- Estados ---\n");
+}
+
+DLList * newTurn(DLList *cell_list, int order, int (*adjMat)[order], int rows, int cols){	//Función para generar un nuevo turno
 	int alive = 0;														//Inicializamos un contador de las células vecinas vivas
-	int *num;
-	DLList *cell_list2 = newDLList(), *a;
-	Cell_t * c, *c1;															//Declaramos una variable para una célula
-	for(int i=0; i<rows; i++){											//Iteramos sobre las filas de la matríz de adyacencia
-		a = lookAt(adjMat, i);
-		for(int j=0; j<cols; j++)										//Iteramos sobre las columnas de la matríz de adyacencia
-			if( *(num = lookAt(a, j)) == 1 ){								//Si la célula actual es adyacente a la célula en i,j
-				c1 = lookAt(cell_list, j);
-				if(c1->status == 1)					//Verificamos si dicha célula adyacente está viva
+	DLList *cell_list2 = newDLList();
+	Cell_t * c, *c1, *new_cell;											//Declaramos una variable para una célula
+	for(int i=0; i<cell_list->size; i++){								//Iteramos sobre las filas de la matríz de adyacencia
+		for(int j=0; j<cell_list->size; j++)							//Iteramos sobre las columnas de la matríz de adyacencia
+			if( adjMat[i][j] == 1 ){									//Si la célula actual es adyacente a la célula en i,j
+				//printf("Adyacente\n");
+				c1 = lookAt(cell_list, j);								//Obtenemos la célula en la lista en la posición j
+				if(c1->status == 1)										//Verificamos si dicha célula adyacente está viva
 					alive++;											//Si lo está, incrementamos el contador
 			}
 		c = lookAt(cell_list, i);										//Traemos la célula que estamos iterando
-		changeCellStatus(c, checkRules(c, alive));						//Cambiamos su estado en base a las reglas
-		append(cell_list2, c);
+		//printf("Vivas: %d\n", alive);
+		new_cell = changeCellStatus(c, checkRules(c, alive));						//Cambiamos su estado en base a las reglas
+		append(cell_list2, new_cell);
+		alive = 0;
 	}
-	cell_list = cell_list2;
+	//cell_list = cell_list2;
+	return cell_list2;
 }
 
 int checkRules(Cell_t *c, int alive){						//Reglas para cambiar el estado de una célula

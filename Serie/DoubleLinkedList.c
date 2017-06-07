@@ -6,7 +6,7 @@
 
 DLList * newDLList()
 {
-	DLList * newList = (DLList *)malloc(sizeof(DLList)); //Creamos el espacio para la lista
+	DLList * newList = (DLList *)calloc(1, sizeof(DLList)); //Creamos el espacio para la lista
 	newList->head = NULL; //Inicializamos a la lista
 	newList->tail = NULL;
 	newList->size = 0;
